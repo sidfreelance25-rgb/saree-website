@@ -105,6 +105,12 @@ p { margin: 0; }
 .insta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
 .insta a { display: block; }
 .insta img { aspect-ratio: 1; object-fit: cover; width: 100%; }
+.reel-grid { display: grid; gap: 1rem; margin-top: 1rem; }
+.reel-card video, .reel-card iframe { width: 100%; aspect-ratio: 9/16; max-height: 640px; border: 0; background: #1a1412; }
+.reel-card img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+@media (min-width: 760px) {
+  .reel-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 .footer { margin-top: 2rem; padding: 1.4rem 1rem 2.5rem; border-top: 1px solid var(--line); display: grid; gap: 1rem; }
 .footer a { display: block; text-decoration: none; padding: 0.2rem 0; }
 .newsletter { display: flex; gap: 0.4rem; }

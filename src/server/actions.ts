@@ -12,6 +12,7 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import { CheckoutError, placeOrder } from "@/lib/checkout";
+import { cleanInstagramHandle, instagramReelEmbed } from "@/lib/instagram";
 import { adjustStock } from "@/lib/inventory";
 import { rememberReceipt } from "@/lib/metrics";
 import { notifyCustomer, notifySellers } from "@/lib/notify";
@@ -940,16 +941,49 @@ export async function deleteMenuItem(formData: FormData) {
   redirect("/admin/content");
 }
 
+export async function saveInstagramHandle(formData: FormData) {
+  const ctx = await act("instagram.write");
+  const handle = cleanInstagramHandle(String(formData.get("handle") ?? ""));
+  if (!handle) redirect("/admin/instagram?error=handle");
+  await prisma.store.update({ where: { id: ctx.store.id }, data: { instagramHandle: handle } });
+  await prisma.instagramConnection.update({
+    where: { storeId: ctx.store.id },
+    data: { account: handle },
+  });
+  redirect("/admin/instagram");
+}
+
 export async function addInstagramPost(formData: FormData) {
   const ctx = await act("instagram.write");
   const permalink = String(formData.get("permalink") ?? "").trim();
   const imageUrl = String(formData.get("imageUrl") ?? "").trim();
   const caption = String(formData.get("caption") ?? "").trim();
-  if (!permalink.startsWith("https://www.instagram.com/") || !imageUrl.startsWith("/")) {
+  if (!permalink.startsWith("https://www.instagram.com/") || !imageUrl.startsWith("/") || imageUrl.includes("..")) {
     redirect("/admin/instagram?error=post");
   }
   await prisma.instagramPost.create({
     data: { storeId: ctx.store.id, source: "manual", permalink, imageUrl, caption, visible: true },
+  });
+  redirect("/admin/instagram");
+}
+
+export async function addInstagramReel(formData: FormData) {
+  const ctx = await act("instagram.write");
+  const permalink = String(formData.get("permalink") ?? "").trim();
+  const videoUrl = String(formData.get("videoUrl") ?? "").trim();
+  const caption = String(formData.get("caption") ?? "").trim();
+  if (!instagramReelEmbed(permalink)) redirect("/admin/instagram?error=reel");
+  if (videoUrl && (!videoUrl.startsWith("/") || videoUrl.includes(".."))) redirect("/admin/instagram?error=reel");
+  await prisma.instagramPost.create({
+    data: {
+      storeId: ctx.store.id,
+      source: "reel",
+      permalink,
+      imageUrl: "",
+      videoUrl,
+      caption,
+      visible: true,
+    },
   });
   redirect("/admin/instagram");
 }

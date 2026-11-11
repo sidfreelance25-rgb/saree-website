@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReelFrame } from "@/components/reels";
 import { ProductCard } from "@/components/shell";
 import { RecentlyViewed } from "@/components/widgets";
 import { subscribeNewsletter } from "@/server/actions";
@@ -136,11 +137,11 @@ export default async function StoreHome({
                   <Link href={`/s/${slug}/instagram`}>Gallery</Link>
                 </div>
                 {posts.length === 0 ? <p className="note">The seller has not chosen posts yet.</p> : (
-                  <div className="insta">
+                  <div className="reel-grid">
                     {posts.map((post) => (
-                      <a key={post.id} href={post.permalink} target="_blank" rel="noreferrer">
-                        <img src={post.imageUrl} alt={post.caption} />
-                      </a>
+                      <article key={post.id} className="reel-card">
+                        <ReelFrame permalink={post.permalink} videoUrl={post.videoUrl} caption={post.caption} imageUrl={post.imageUrl} />
+                      </article>
                     ))}
                   </div>
                 )}

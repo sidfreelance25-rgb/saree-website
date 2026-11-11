@@ -553,6 +553,7 @@ model InstagramPost {
   source     String
   permalink  String
   imageUrl   String
+  videoUrl   String   @default("")
   caption    String   @default("")
   postedAt   DateTime @default(now())
   visible    Boolean  @default(true)
