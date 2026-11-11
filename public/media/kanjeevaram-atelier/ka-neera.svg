@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 460" role="img">
+  <rect width="300" height="460" fill="#1F6B5A"/>
+  <rect width="300" height="86" fill="#E6D3A1"/>
+  <rect y="78" width="300" height="8" fill="#143024"/>
+  <rect width="16" height="460" fill="#E6D3A1"/>
+  <rect x="284" width="16" height="460" fill="#E6D3A1"/>
+  <rect x="24" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="42" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="60" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="78" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="96" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="114" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="132" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="150" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="168" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="186" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="204" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="222" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="240" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="258" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+<rect x="276" y="78" width="4" height="382" fill="#F4EFE2" opacity="0.8"/>
+  <rect x="196" y="392" width="78" height="50" fill="#143024" stroke="#E6D3A1" stroke-width="2"/>
+  <text x="235" y="421" text-anchor="middle" font-size="9" fill="#1F6B5A" font-family="Georgia, serif">blouse</text>
+</svg>
