@@ -1,0 +1,11 @@
+{
+  "name": "Taana seller",
+  "short_name": "Taana",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#f3eee6",
+  "theme_color": "#6E2433",
+  "icons": [
+    { "src": "/brand-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

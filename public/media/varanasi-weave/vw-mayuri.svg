@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 460" role="img">
+  <rect width="300" height="460" fill="#F7F1E4"/>
+  <rect width="300" height="86" fill="#6E2433"/>
+  <rect y="78" width="300" height="8" fill="#E7D7C3"/>
+  <rect width="16" height="460" fill="#6E2433"/>
+  <rect x="284" width="16" height="460" fill="#6E2433"/>
+  <path d="M48 120 C66 100, 76 128, 56 142 C40 132, 38 124, 48 120Z" fill="#C6A15B"/>
+<path d="M118 120 C136 100, 146 128, 126 142 C110 132, 108 124, 118 120Z" fill="#C6A15B"/>
+<path d="M188 120 C206 100, 216 128, 196 142 C180 132, 178 124, 188 120Z" fill="#C6A15B"/>
+<path d="M258 120 C276 100, 286 128, 266 142 C250 132, 248 124, 258 120Z" fill="#C6A15B"/>
+<path d="M48 190 C66 170, 76 198, 56 212 C40 202, 38 194, 48 190Z" fill="#C6A15B"/>
+<path d="M118 190 C136 170, 146 198, 126 212 C110 202, 108 194, 118 190Z" fill="#C6A15B"/>
+<path d="M188 190 C206 170, 216 198, 196 212 C180 202, 178 194, 188 190Z" fill="#C6A15B"/>
+<path d="M258 190 C276 170, 286 198, 266 212 C250 202, 248 194, 258 190Z" fill="#C6A15B"/>
+<path d="M48 260 C66 240, 76 268, 56 282 C40 272, 38 264, 48 260Z" fill="#C6A15B"/>
+<path d="M118 260 C136 240, 146 268, 126 282 C110 272, 108 264, 118 260Z" fill="#C6A15B"/>
+<path d="M188 260 C206 240, 216 268, 196 282 C180 272, 178 264, 188 260Z" fill="#C6A15B"/>
+<path d="M258 260 C276 240, 286 268, 266 282 C250 272, 248 264, 258 260Z" fill="#C6A15B"/>
+<path d="M48 330 C66 310, 76 338, 56 352 C40 342, 38 334, 48 330Z" fill="#C6A15B"/>
+<path d="M118 330 C136 310, 146 338, 126 352 C110 342, 108 334, 118 330Z" fill="#C6A15B"/>
+<path d="M188 330 C206 310, 216 338, 196 352 C180 342, 178 334, 188 330Z" fill="#C6A15B"/>
+<path d="M258 330 C276 310, 286 338, 266 352 C250 342, 248 334, 258 330Z" fill="#C6A15B"/>
+  <rect x="196" y="392" width="78" height="50" fill="#E7D7C3" stroke="#6E2433" stroke-width="2"/>
+  <text x="235" y="421" text-anchor="middle" font-size="9" fill="#F7F1E4" font-family="Georgia, serif">blouse</text>
+</svg>

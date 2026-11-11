@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 460" role="img">
+  <rect width="300" height="460" fill="#F2D5D0"/>
+  <rect width="300" height="86" fill="#8C4A2F"/>
+  <rect y="78" width="300" height="8" fill="#E7B8B0"/>
+  <rect width="16" height="460" fill="#8C4A2F"/>
+  <rect x="284" width="16" height="460" fill="#8C4A2F"/>
+  
+  <rect x="196" y="392" width="78" height="50" fill="#E7B8B0" stroke="#8C4A2F" stroke-width="2"/>
+  <text x="235" y="421" text-anchor="middle" font-size="9" fill="#F2D5D0" font-family="Georgia, serif">blouse</text>
+</svg>

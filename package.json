@@ -1,0 +1,31 @@
+{
+  "name": "saree-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 --port 3000",
+    "build": "prisma generate && next build",
+    "start": "next start --hostname 0.0.0.0 --port 3000",
+    "postinstall": "prisma generate",
+    "setup": "rm -f prisma/dev.db prisma/dev.db-journal && prisma db push && tsx prisma/seed.ts",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "tsx --test --test-concurrency=1 tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.0",
+    "next": "15.5.29",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
+    "prisma": "6.19.0",
+    "tsx": "4.20.6",
+    "typescript": "5.9.2"
+  }
+}

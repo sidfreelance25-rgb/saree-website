@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 460" role="img">
+  <rect width="300" height="460" fill="#5C1E2A"/>
+  <rect width="300" height="86" fill="#C6A15B"/>
+  <rect y="78" width="300" height="8" fill="#3E141C"/>
+  <rect width="16" height="460" fill="#C6A15B"/>
+  <rect x="284" width="16" height="460" fill="#C6A15B"/>
+  <path d="M28 150 L40 126 L52 150 L46 150 L46 168 L34 168 L34 150 Z" fill="#F3E6C4"/>
+<path d="M56 150 L68 126 L80 150 L74 150 L74 168 L62 168 L62 150 Z" fill="#F3E6C4"/>
+<path d="M84 150 L96 126 L108 150 L102 150 L102 168 L90 168 L90 150 Z" fill="#F3E6C4"/>
+<path d="M112 150 L124 126 L136 150 L130 150 L130 168 L118 168 L118 150 Z" fill="#F3E6C4"/>
+<path d="M140 150 L152 126 L164 150 L158 150 L158 168 L146 168 L146 150 Z" fill="#F3E6C4"/>
+<path d="M168 150 L180 126 L192 150 L186 150 L186 168 L174 168 L174 150 Z" fill="#F3E6C4"/>
+<path d="M196 150 L208 126 L220 150 L214 150 L214 168 L202 168 L202 150 Z" fill="#F3E6C4"/>
+<path d="M224 150 L236 126 L248 150 L242 150 L242 168 L230 168 L230 150 Z" fill="#F3E6C4"/>
+<path d="M252 150 L264 126 L276 150 L270 150 L270 168 L258 168 L258 150 Z" fill="#F3E6C4"/>
+<rect x="20" y="190" width="260" height="3" fill="#C6A15B" opacity="0.55"/>
+<rect x="20" y="236" width="260" height="3" fill="#C6A15B" opacity="0.55"/>
+<rect x="20" y="282" width="260" height="3" fill="#C6A15B" opacity="0.55"/>
+<rect x="20" y="328" width="260" height="3" fill="#C6A15B" opacity="0.55"/>
+<rect x="20" y="374" width="260" height="3" fill="#C6A15B" opacity="0.55"/>
+  <rect x="196" y="392" width="78" height="50" fill="#3E141C" stroke="#C6A15B" stroke-width="2"/>
+  <text x="235" y="421" text-anchor="middle" font-size="9" fill="#5C1E2A" font-family="Georgia, serif">blouse</text>
+</svg>

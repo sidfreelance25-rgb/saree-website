@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 460" role="img">
+  <rect width="300" height="460" fill="#D6A03C"/>
+  <rect width="300" height="86" fill="#143024"/>
+  <rect y="78" width="300" height="8" fill="#A87820"/>
+  <rect width="16" height="460" fill="#143024"/>
+  <rect x="284" width="16" height="460" fill="#143024"/>
+  <rect x="14" y="90" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="112" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="134" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="156" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="178" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="200" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="222" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="244" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="266" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="288" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="310" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="332" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="354" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="376" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="398" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="420" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="14" y="442" width="272" height="2" fill="#F6F1E4" opacity="0.7"/>
+<rect x="28" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="50" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="72" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="94" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="116" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="138" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="160" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="182" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="204" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="226" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="248" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+<rect x="270" y="78" width="2" height="382" fill="#F6F1E4" opacity="0.7"/>
+  <rect x="196" y="392" width="78" height="50" fill="#A87820" stroke="#143024" stroke-width="2"/>
+  <text x="235" y="421" text-anchor="middle" font-size="9" fill="#D6A03C" font-family="Georgia, serif">blouse</text>
+</svg>
