@@ -42,6 +42,7 @@ export default async function StoreHome({
       {query.joined && <p className="note wrap">You will hear when the next lot is ready.</p>}
       {sections.filter((section) => section.type !== "announcement").map((section) => {
         const hidden = preview && !section.enabled;
+        const extra = sectionExtras(section.payload);
         return (
           <section key={section.id} className="section" style={hidden ? { opacity: 0.55 } : undefined}>
             {section.type === "hero" && (
@@ -51,12 +52,13 @@ export default async function StoreHome({
                   <p className="kicker">{store.city}</p>
                   <h1>{section.title}</h1>
                   <p className="lede" style={{ marginTop: "0.8rem" }}>{section.subtitle}</p>
+                  {extra.body && <p>{extra.body}</p>}
                   <div className="hero-actions">
                     <Link className="btn" href={`/s/${slug}/collection/new-arrivals`}>Shop the edit</Link>
                     <Link className="btn ghost" href={`/s/${slug}/page/about`}>The house</Link>
                   </div>
                 </div>
-                <div className="hero-media">{heroImage && <img src={heroImage} alt="" />}</div>
+                <div className="hero-media">{(extra.imageUrl || heroImage) && <img src={extra.imageUrl || heroImage} alt="" />}</div>
               </div>
             )}
             {section.type === "collections" && (
@@ -119,7 +121,8 @@ export default async function StoreHome({
               <div className="campaign">
                 <p className="kicker">This season</p>
                 <h2>{section.title}</h2>
-                <p style={{ margin: "0.5rem 0 1rem" }}>{section.subtitle}</p>
+                <p style={{ margin: "0.5rem 0 1rem" }}>{extra.body || section.subtitle}</p>
+                {extra.imageUrl && <img src={extra.imageUrl} alt="" style={{ width: "100%", maxHeight: 360, objectFit: "cover", marginBottom: "0.8rem" }} />}
                 <Link className="btn" href={`/s/${slug}/collection/wedding`}>Wedding edit</Link>
               </div>
             )}
@@ -200,6 +203,15 @@ function quotes(payload: string) {
     return data.quotes ?? [];
   } catch {
     return [];
+  }
+}
+
+function sectionExtras(payload: string) {
+  try {
+    const data = JSON.parse(payload) as { body?: string; imageUrl?: string };
+    return { body: data.body ?? "", imageUrl: data.imageUrl ?? "" };
+  } catch {
+    return { body: "", imageUrl: "" };
   }
 }
 

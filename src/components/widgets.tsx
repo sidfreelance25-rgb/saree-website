@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { login, placeOrderAction, savePage, saveProduct, signup } from "@/server/actions";
-import { formatINR } from "@/lib/format";
+import { useActionState, useEffect, useState, type ReactNode } from "react";
+import { addToCart, login, placeOrderAction, savePage, saveProduct, signup } from "@/server/actions";
+import { discountPercent, formatINR } from "@/lib/format";
 
 export function SwRegister() {
   useEffect(() => {
@@ -200,15 +200,22 @@ type ProductDefaults = {
   blouseIncluded?: boolean;
   images?: string[];
   lowStockAt?: string;
+  colours?: ColourDraft[];
 };
+
+type ColourDraft = { id: string; name: string; stock: string; price: string; images: string[] };
+
+function blankColour(): ColourDraft {
+  return { id: "", name: "", stock: "0", price: "", images: [] };
+}
 
 export function ProductForm({ defaults }: { defaults: ProductDefaults }) {
   const [state, action, pending] = useActionState(saveProduct, { error: "" });
-  const [images, setImages] = useState<string[]>(defaults.images ?? []);
+  const [colours, setColours] = useState<ColourDraft[]>(defaults.colours?.length ? defaults.colours : [{ ...blankColour(), name: defaults.color ?? "", stock: defaults.stock ?? "0", images: defaults.images ?? [] }]);
   const [progress, setProgress] = useState(0);
   const [uploadError, setUploadError] = useState("");
 
-  async function onFiles(list: FileList | null) {
+  async function addPhotos(index: number, list: FileList | null) {
     if (!list?.length) return;
     setUploadError("");
     for (const file of Array.from(list)) {
@@ -217,7 +224,7 @@ export function ProductForm({ defaults }: { defaults: ProductDefaults }) {
         const body = new FormData();
         body.set("file", new File([blob], "saree.jpg", { type: "image/jpeg" }));
         const url = await upload(body, setProgress);
-        setImages((current) => [...current, url]);
+        setColours((current) => current.map((colour, colourIndex) => colourIndex === index ? { ...colour, images: [...colour.images, url] } : colour));
       } catch (error) {
         setUploadError(error instanceof Error ? error.message : "Upload failed");
       }
@@ -228,7 +235,8 @@ export function ProductForm({ defaults }: { defaults: ProductDefaults }) {
   return (
     <form action={action} className="form-grid">
       {defaults.id && <input type="hidden" name="id" value={defaults.id} />}
-      <input type="hidden" name="images" value={images.join("\n")} />
+      <input type="hidden" name="colours" value={JSON.stringify(colours)} />
+      <p className="note">One catalogue item. Each colour keeps its own photograph and stock.</p>
       <label className="field"><span>Saree name</span><input name="name" required defaultValue={defaults.name} /></label>
       <div className="two">
         <label className="field"><span>SKU</span><input name="sku" required defaultValue={defaults.sku} /></label>
@@ -240,7 +248,6 @@ export function ProductForm({ defaults }: { defaults: ProductDefaults }) {
       </div>
       <div className="two">
         <label className="field"><span>Cost price (₹, private)</span><input name="cost" inputMode="decimal" defaultValue={defaults.cost} /></label>
-        <label className="field"><span>Stock</span><input name="stock" inputMode="numeric" defaultValue={defaults.stock ?? "0"} /></label>
       </div>
       <label className="field"><span>Description</span><textarea name="description" rows={4} defaultValue={defaults.description} /></label>
       <div className="two">
@@ -248,7 +255,6 @@ export function ProductForm({ defaults }: { defaults: ProductDefaults }) {
         <label className="field"><span>Fabric</span><input name="fabric" defaultValue={defaults.fabric} /></label>
         <label className="field"><span>Weave</span><input name="weave" defaultValue={defaults.weave} /></label>
         <label className="field"><span>Work</span><input name="work" defaultValue={defaults.work} /></label>
-        <label className="field"><span>Colour</span><input name="color" defaultValue={defaults.color} /></label>
         <label className="field"><span>Pattern</span><input name="pattern" defaultValue={defaults.pattern} /></label>
         <label className="field"><span>Occasion</span><input name="occasion" defaultValue={defaults.occasion} /></label>
         <label className="field"><span>Length (cm)</span><input name="lengthCm" inputMode="numeric" defaultValue={defaults.lengthCm} /></label>
@@ -277,20 +283,32 @@ export function ProductForm({ defaults }: { defaults: ProductDefaults }) {
         <label className="field"><span>SEO title</span><input name="seoTitle" defaultValue={defaults.seoTitle} /></label>
         <label className="field"><span>SEO description</span><input name="seoDescription" defaultValue={defaults.seoDescription} /></label>
       </div>
-      <div className="two">
-        <label className="field"><span>Another colour</span><input name="extraVariant" placeholder="Rani" /></label>
-        <label className="field"><span>Its stock</span><input name="extraStock" inputMode="numeric" /></label>
-        <label className="field"><span>Its price (₹, optional)</span><input name="extraPrice" inputMode="decimal" /></label>
-      </div>
-      <label className="field">
-        <span>Photos from camera or gallery</span>
-        <input type="file" accept="image/*" capture="environment" multiple onChange={(event) => onFiles(event.target.files)} />
-      </label>
+      <h2 style={{ fontSize: "1.4rem" }}>Colours</h2>
+      {colours.map((colour, index) => (
+        <div key={`${colour.id}-${index}`} className="colour-block">
+          <div className="two">
+            <label className="field"><span>Colour name</span><input value={colour.name} onChange={(event) => setColours((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item))} required /></label>
+            <label className="field"><span>Stock</span><input inputMode="numeric" value={colour.stock} onChange={(event) => setColours((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, stock: event.target.value } : item))} /></label>
+            <label className="field"><span>Price (₹, blank uses the saree price)</span><input inputMode="decimal" value={colour.price} onChange={(event) => setColours((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, price: event.target.value } : item))} /></label>
+          </div>
+          <label className="field">
+            <span>Photographs for this colour</span>
+            <input type="file" accept="image/*" capture="environment" multiple onChange={(event) => addPhotos(index, event.target.files)} />
+          </label>
+          <div className="rail">
+            {colour.images.map((url) => (
+              <button key={url} type="button" className="thumb-remove" onClick={() => setColours((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, images: item.images.filter((image) => image !== url) } : item))}>
+                <img src={url} alt="" />
+                Remove
+              </button>
+            ))}
+          </div>
+          {colours.length > 1 && <button className="btn ghost" type="button" onClick={() => setColours((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove this colour</button>}
+        </div>
+      ))}
+      <button className="btn ghost" type="button" onClick={() => setColours((current) => [...current, blankColour()])}>Add a colour</button>
       {progress > 0 && <div className="progress" aria-label="Upload progress"><span style={{ width: `${progress}%` }} /></div>}
       {uploadError && <p className="error">{uploadError}</p>}
-      <div className="rail">
-        {images.map((url) => <img key={url} src={url} alt="" style={{ width: 88, height: 112, objectFit: "cover" }} />)}
-      </div>
       {state?.error && <p className="error" role="alert">{state.error}</p>}
       <button className="btn block" disabled={pending}>{pending ? "Saving…" : "Save saree"}</button>
     </form>
@@ -330,19 +348,190 @@ function upload(body: FormData, onProgress: (value: number) => void) {
   });
 }
 
-export function PageForm() {
+export function PageForm({
+  page,
+}: {
+  page?: { id: string; title: string; slug: string; body: string; seoTitle: string; seoDescription: string; published: boolean };
+}) {
   const [state, action, pending] = useActionState(savePage, { error: "" });
   return (
     <form action={action} className="form-grid">
-      <label className="field"><span>Title</span><input name="title" required /></label>
-      <label className="field"><span>Slug</span><input name="slug" placeholder="optional" /></label>
-      <label className="field"><span>Body</span><textarea name="body" rows={6} required /></label>
-      <label className="field"><span>SEO title</span><input name="seoTitle" /></label>
-      <label className="field"><span>SEO description</span><input name="seoDescription" /></label>
-      <label className="check"><input type="checkbox" name="published" defaultChecked /> Publish</label>
+      {page && <input type="hidden" name="id" value={page.id} />}
+      <label className="field"><span>Title</span><input name="title" required defaultValue={page?.title} /></label>
+      <label className="field"><span>Slug</span><input name="slug" placeholder="optional" defaultValue={page?.slug} /></label>
+      <label className="field"><span>Body</span><textarea name="body" rows={6} required defaultValue={page?.body} /></label>
+      <label className="field"><span>SEO title</span><input name="seoTitle" defaultValue={page?.seoTitle} /></label>
+      <label className="field"><span>SEO description</span><input name="seoDescription" defaultValue={page?.seoDescription} /></label>
+      <label className="check"><input type="checkbox" name="published" defaultChecked={page?.published ?? true} /> Publish</label>
       {state?.error && <p className="error">{state.error}</p>}
-      <button className="btn" disabled={pending}>Save page</button>
+      <button className="btn" disabled={pending}>{page ? "Update page" : "Save page"}</button>
     </form>
+  );
+}
+
+export function UploadedUrl({ name, initial = "" }: { name: string; initial?: string }) {
+  const [url, setUrl] = useState(initial);
+  const [error, setError] = useState("");
+  return (
+    <div className="field">
+      <span>Photograph</span>
+      <input type="hidden" name={name} value={url} />
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          setError("");
+          try {
+            const blob = await compress(file);
+            const body = new FormData();
+            body.set("file", new File([blob], "content.jpg", { type: "image/jpeg" }));
+            setUrl(await upload(body, () => undefined));
+          } catch (reason) {
+            setError(reason instanceof Error ? reason.message : "Upload failed");
+          }
+        }}
+      />
+      {url && <img src={url} alt="" style={{ width: 120, height: 150, objectFit: "cover" }} />}
+      {error && <p className="error">{error}</p>}
+    </div>
+  );
+}
+
+export function ColourStudio({
+  store,
+  productId,
+  basePrice,
+  compareAt,
+  kicker,
+  name,
+  colours,
+  children,
+}: {
+  store: string;
+  productId: string;
+  basePrice: number;
+  compareAt: number | null;
+  kicker: string;
+  name: string;
+  colours: { id: string; name: string; stock: number; pricePaise: number | null; images: { url: string; alt: string }[] }[];
+  children?: ReactNode;
+}) {
+  const [index, setIndex] = useState(0);
+  const colour = colours[index] ?? colours[0];
+  if (!colour) return null;
+  const images = colour.images.length ? colour.images : colours.flatMap((item) => item.images).slice(0, 1);
+  const price = colour.pricePaise ?? basePrice;
+  const compare = compareAt && compareAt > price ? compareAt : null;
+  return (
+    <>
+      <div>
+        <Gallery key={colour.id} images={images} />
+      </div>
+      <div className="buy">
+        <p className="kicker">{kicker}</p>
+        <h1 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)" }}>{name}</h1>
+        <p className="price" style={{ fontSize: "1.3rem" }}>
+          {compare && <span className="compare">{formatINR(compare)}</span>}
+          {formatINR(price)}
+          {compare && <span className="badge"> {discountPercent(price, compare)}% off</span>}
+        </p>
+        <p>{colour.stock > 0 ? `${colour.stock} in ${colour.name}` : `${colour.name} is out of stock`}</p>
+        {colours.length > 1 && (
+          <div className="swatches" role="group" aria-label="Colour">
+            {colours.map((item, itemIndex) => (
+              <button key={item.id} type="button" className="swatch" aria-pressed={itemIndex === index} onClick={() => setIndex(itemIndex)}>
+                {item.images[0] && <img src={item.images[0].url} alt="" />}
+                {item.name}
+              </button>
+            ))}
+          </div>
+        )}
+        {colour.stock > 0 ? (
+          <form action={addToCart} className="stack">
+            <input type="hidden" name="slug" value={store} />
+            <input type="hidden" name="productId" value={productId} />
+            <input type="hidden" name="variantId" value={colour.id} />
+            <label className="field"><span>Quantity</span><input name="qty" type="number" min={1} max={Math.min(10, colour.stock)} defaultValue={1} /></label>
+            <button className="btn block" type="submit">Add {colour.name} to cart</button>
+          </form>
+        ) : <p className="note">This colour is woven out. Ask the house about the next warp.</p>}
+        {children}
+      </div>
+    </>
+  );
+}
+
+export function CatalogCard({
+  store,
+  product,
+}: {
+  store: string;
+  product: {
+    id: string;
+    slug: string;
+    name: string;
+    fabric: string;
+    pricePaise: number;
+    compareAtPaise: number | null;
+    images: { url: string; alt: string; variantId?: string | null }[];
+    variants: { id: string; name?: string; color?: string; stock: number; pricePaise: number | null; imageUrl?: string }[];
+  };
+}) {
+  const colours = product.variants.map((variant) => ({
+    id: variant.id,
+    name: variant.name || variant.color || "Colour",
+    stock: variant.stock,
+    price: variant.pricePaise ?? product.pricePaise,
+    image:
+      product.images.find((image) => image.variantId === variant.id)?.url
+      || variant.imageUrl
+      || product.images.find((image) => !image.variantId)?.url
+      || product.images[0]?.url
+      || "",
+  }));
+  const [index, setIndex] = useState(0);
+  const colour = colours[index] ?? colours[0];
+  const price = colour ? Math.min(...colours.map((item) => item.price)) : product.pricePaise;
+  const shown = colour?.price ?? price;
+  const stock = colours.reduce((sum, item) => sum + item.stock, 0);
+  const compare = product.compareAtPaise && product.compareAtPaise > shown ? product.compareAtPaise : null;
+  const off = compare ? Math.round(((compare - shown) / compare) * 100) : 0;
+  return (
+    <article className="card">
+      <a href={`/s/${store}/product/${product.slug}${colour ? `?variant=${colour.id}` : ""}`}>
+        {colour?.image ? <img src={colour.image} alt={product.name} /> : <div className="ph" />}
+        <h3>{product.name}</h3>
+        <p className="muted">{product.fabric}</p>
+        <p className="price">
+          {compare && <span className="compare">{formatINR(compare)}</span>}
+          {formatINR(shown)}
+          {off > 0 && <span className="badge"> {off}% off</span>}
+        </p>
+        {stock <= 0 && <p className="muted">Out of stock</p>}
+      </a>
+      {colours.length > 1 && (
+        <div className="swatches" role="group" aria-label={`${product.name} colours`}>
+          {colours.map((item, itemIndex) => (
+            <button key={item.id} type="button" className="swatch" aria-pressed={itemIndex === index} onClick={() => setIndex(itemIndex)}>
+              {item.image && <img src={item.image} alt="" />}
+              {item.name}
+            </button>
+          ))}
+        </div>
+      )}
+      {stock > 0 && colours.length === 1 && colour && (
+        <form action={addToCart}>
+          <input type="hidden" name="slug" value={store} />
+          <input type="hidden" name="productId" value={product.id} />
+          <input type="hidden" name="variantId" value={colour.id} />
+          <input type="hidden" name="qty" value="1" />
+          <button className="btn ghost" type="submit">Add</button>
+        </form>
+      )}
+    </article>
   );
 }
 

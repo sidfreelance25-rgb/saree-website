@@ -29,7 +29,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       {products.map((product) => (
         <article key={product.id} className="order-card">
           <Link href={`/admin/products/${product.id}`}><strong>{product.name}</strong></Link>
-          <p className="muted">{product.status} · {product.sku} · {formatINR(displayPrice(product))} · stock {totalStock(product)}</p>
+          <p className="muted">{product.status} · {product.sku} · {formatINR(displayPrice(product))} · stock {totalStock(product)} · {product.variants.map((variant) => variant.name).join(", ") || "one colour"}</p>
           {canWrite && (
             <form action={setProductStatus}>
               <input type="hidden" name="id" value={product.id} />

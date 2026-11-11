@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Gallery, RememberProduct } from "@/components/widgets";
-import { addToCart, submitReview, toggleWishlist } from "@/server/actions";
-import { displayPrice, totalStock, unitPrice } from "@/lib/catalog";
-import { discountPercent, formatINR } from "@/lib/format";
+import { ColourStudio, RememberProduct } from "@/components/widgets";
+import { submitReview, toggleWishlist } from "@/server/actions";
+import { displayPrice, totalStock } from "@/lib/catalog";
 import { loadCatalog, loadStore } from "@/lib/load";
 import { deliveryCopy, pinServiceable } from "@/lib/pin";
 import { ATTRIBUTE_FIELDS } from "@/lib/presets";
@@ -43,8 +42,19 @@ export default async function ProductPage({
   if (!product) return <div className="wrap"><h1>This saree is not on the floor.</h1></div>;
   const visible = new Set(store.visibleAttributes.split(","));
   const price = displayPrice(product);
-  const compare = product.compareAtPaise && product.compareAtPaise > price ? product.compareAtPaise : null;
   const selected = product.variants.find((variant) => variant.id === query.variant) ?? product.variants[0];
+  const shared = product.images.filter((image) => !image.variantId);
+  const colours = product.variants.map((variant) => {
+    const own = product.images.filter((image) => image.variantId === variant.id);
+    return {
+      id: variant.id,
+      name: variant.name || variant.color || "Colour",
+      stock: variant.stock,
+      pricePaise: variant.pricePaise,
+      images: (own.length ? own : shared).map((image) => ({ url: image.url, alt: image.alt || `${product.name} ${variant.name}` })),
+    };
+  });
+  const start = Math.max(0, colours.findIndex((colour) => colour.id === selected?.id));
   const pin = query.pin ?? "";
   const serviceable = pin ? pinServiceable(store, pin) : true;
   const session = await readSession();
@@ -90,37 +100,19 @@ export default async function ProductPage({
     <div className="wrap product">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <RememberProduct store={storeSlug} id={product.id} />
-      <div>
-        <p className="crumbs"><Link href={`/s/${storeSlug}`}>Home</Link> / <Link href={`/s/${storeSlug}/search?sareeType=${encodeURIComponent(product.sareeType)}`}>{product.sareeType}</Link> / {product.name}</p>
-        <Gallery images={product.images} />
-      </div>
-      <div className="buy">
-        <p className="kicker">{product.sareeType} · {product.sku}</p>
-        <h1 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)" }}>{product.name}</h1>
-        <p className="price" style={{ fontSize: "1.3rem" }}>
-          {compare && <span className="compare">{formatINR(compare)}</span>}
-          {formatINR(selected ? unitPrice(product, selected) : price)}
-          {compare && <span className="badge"> {discountPercent(price, compare)}% off</span>}
-        </p>
-        <p>{totalStock(product) > 0 ? `${totalStock(product)} in stock` : "Out of stock"}</p>
+      <p className="crumbs" style={{ gridColumn: "1 / -1" }}><Link href={`/s/${storeSlug}`}>Home</Link> / <Link href={`/s/${storeSlug}/search?sareeType=${encodeURIComponent(product.sareeType)}`}>{product.sareeType}</Link> / {product.name}</p>
+      <ColourStudio
+        key={colours[start]?.id ?? "colour"}
+        store={storeSlug}
+        productId={product.id}
+        basePrice={product.pricePaise}
+        compareAt={product.compareAtPaise}
+        kicker={`${product.sareeType} · ${product.sku}`}
+        name={product.name}
+        colours={start > 0 ? [...colours.slice(start), ...colours.slice(0, start)] : colours}
+      >
         {product.dispatch === "made_to_order" && <p className="note">Made to order. The loom needs about {product.leadDays} days before this ships.</p>}
         <p>{product.description}</p>
-        {product.variants.length > 1 && (
-          <div className="row">
-            {product.variants.map((variant) => (
-              <Link key={variant.id} className="chip" href={`/s/${storeSlug}/product/${slug}?variant=${variant.id}`}>{variant.name} · {variant.stock}</Link>
-            ))}
-          </div>
-        )}
-        {selected && selected.stock > 0 ? (
-          <form action={addToCart} className="stack">
-            <input type="hidden" name="slug" value={storeSlug} />
-            <input type="hidden" name="productId" value={product.id} />
-            <input type="hidden" name="variantId" value={selected.id} />
-            <label className="field"><span>Quantity</span><input name="qty" type="number" min={1} max={Math.min(10, selected.stock)} defaultValue={1} /></label>
-            <button className="btn block" type="submit">Add to cart</button>
-          </form>
-        ) : <p className="note">This colour is woven out. Ask the house about the next warp.</p>}
         <div className="row">
           {user ? (
             <form action={toggleWishlist}>
@@ -180,7 +172,7 @@ export default async function ProductPage({
             </div>
           </div>
         )}
-      </div>
+      </ColourStudio>
     </div>
   );
 }

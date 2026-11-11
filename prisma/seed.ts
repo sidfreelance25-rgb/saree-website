@@ -38,7 +38,7 @@ type Piece = {
   border: string;
   motif: string;
   accent: string;
-  variants?: { name: string; color: string; sku: string; stock: number; price?: number; ground: string }[];
+  variants?: { name: string; color: string; sku: string; stock: number; price?: number; ground: string; border?: string; motif?: string }[];
 };
 
 const houses: {
@@ -265,7 +265,7 @@ const houses: {
         accent: "#E7D7C3",
         variants: [
           { name: "Ivory", color: "Ivory", sku: "VW-MAYURI-IV", stock: 1, ground: "#F7F1E4" },
-          { name: "Rani", color: "Rani", sku: "VW-MAYURI-RA", stock: 1, price: 4750000, ground: "#C23B62" },
+          { name: "Rani", color: "Rani", sku: "VW-MAYURI-RA", stock: 1, price: 4750000, ground: "#C23B62", border: "#F6E7C1", motif: "#F4D35E" },
         ],
       },
     ],
@@ -635,6 +635,28 @@ async function main() {
       await prisma.mediaAsset.create({
         data: { storeId: store.id, url: imageUrl, filename, mime: "image/svg+xml", bytes: svg.length, alt: piece.name },
       });
+      const colourRows = piece.variants ?? [];
+      if (colourRows.length) {
+        const saved = await prisma.productVariant.findMany({ where: { productId: product.id } });
+        for (const colour of colourRows) {
+          const row = saved.find((variant) => variant.sku === colour.sku);
+          if (!row) continue;
+          const colourSvg = sareeSvg({
+            ground: colour.ground || piece.ground,
+            border: colour.border || piece.border,
+            motif: colour.motif || piece.motif,
+            accent: piece.accent,
+            pattern: piece.art,
+          });
+          const colourFile = `${colour.sku.toLowerCase()}.svg`;
+          writeFileSync(join(dir, colourFile), colourSvg);
+          const colourUrl = `/media/${house.slug}/${colourFile}`;
+          await prisma.productImage.create({
+            data: { storeId: store.id, productId: product.id, variantId: row.id, url: colourUrl, alt: `${piece.name} ${colour.name}`, sort: 1 },
+          });
+          await prisma.productVariant.update({ where: { id: row.id }, data: { imageUrl: colourUrl } });
+        }
+      }
     }
 
     await prisma.blogPost.create({

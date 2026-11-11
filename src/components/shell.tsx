@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { addToCart } from "@/server/actions";
-import { formatINR } from "@/lib/format";
-import { SearchBox } from "./widgets";
+import { CatalogCard, SearchBox } from "./widgets";
 
 type StoreLink = { label: string; href: string };
 type Theme = {
@@ -95,42 +93,15 @@ export function ProductCard({
 }: {
   store: string;
   product: {
+    id: string;
     slug: string;
     name: string;
     fabric: string;
     pricePaise: number;
     compareAtPaise: number | null;
-    images: { url: string; alt: string }[];
-    variants: { id: string; stock: number; pricePaise: number | null }[];
-    id: string;
+    images: { url: string; alt: string; variantId?: string | null }[];
+    variants: { id: string; name?: string; color?: string; stock: number; pricePaise: number | null; imageUrl?: string }[];
   };
 }) {
-  const price = Math.min(...product.variants.map((variant) => variant.pricePaise ?? product.pricePaise));
-  const stock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
-  const compare = product.compareAtPaise && product.compareAtPaise > price ? product.compareAtPaise : null;
-  const off = compare ? Math.round(((compare - price) / compare) * 100) : 0;
-  return (
-    <article className="card">
-      <Link href={`/s/${store}/product/${product.slug}`}>
-        {product.images[0] ? <img src={product.images[0].url} alt={product.images[0].alt || product.name} /> : <div className="ph" />}
-        <h3>{product.name}</h3>
-        <p className="muted">{product.fabric}</p>
-        <p className="price">
-          {compare && <span className="compare">{formatINR(compare)}</span>}
-          {formatINR(price)}
-          {off > 0 && <span className="badge"> {off}% off</span>}
-        </p>
-        {stock <= 0 && <p className="muted">Out of stock</p>}
-      </Link>
-      {stock > 0 && product.variants.length === 1 && (
-        <form action={addToCart}>
-          <input type="hidden" name="slug" value={store} />
-          <input type="hidden" name="productId" value={product.id} />
-          <input type="hidden" name="variantId" value={product.variants[0].id} />
-          <input type="hidden" name="qty" value="1" />
-          <button className="btn ghost" type="submit">Add</button>
-        </form>
-      )}
-    </article>
-  );
+  return <CatalogCard store={store} product={product} />;
 }

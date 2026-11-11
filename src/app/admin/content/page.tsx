@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageForm } from "@/components/widgets";
+import { PageForm, UploadedUrl } from "@/components/widgets";
 import { addMenuItem, deleteMenuItem, moveSection, toggleSection, updateSection } from "@/server/actions";
 import { sellerContext } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -14,12 +14,16 @@ export default async function ContentPage() {
       <h1 style={{ fontSize: "2rem" }}>Content</h1>
       <p><Link href={`/s/${ctx.store.slug}?preview=1`}>Preview the homepage, including hidden sections</Link></p>
       <h2>Homepage</h2>
-      {sections.map((section) => (
+      {sections.map((section) => {
+        const copy = readCopy(section.payload);
+        return (
         <form key={section.id} action={updateSection} className="panel stack">
           <input type="hidden" name="id" value={section.id} />
           <p className="kicker">{section.type} · {section.enabled ? "visible" : "hidden"}</p>
           <label className="field"><span>Title</span><input name="title" defaultValue={section.title} /></label>
           <label className="field"><span>Subtitle</span><input name="subtitle" defaultValue={section.subtitle} /></label>
+          <label className="field"><span>Body</span><textarea name="body" rows={4} defaultValue={copy.body} /></label>
+          <UploadedUrl name="imageUrl" initial={copy.imageUrl} />
           <button className="btn" type="submit">Save section</button>
           <div className="row">
             <button className="btn ghost" formAction={toggleSection} type="submit">{section.enabled ? "Hide" : "Show"}</button>
@@ -27,11 +31,16 @@ export default async function ContentPage() {
             <button className="btn ghost" formAction={moveSection} name="direction" value="1" type="submit">Down</button>
           </div>
         </form>
-      ))}
+        );
+      })}
       <h2>Pages</h2>
       {pages.map((page) => (
-        <p key={page.id}><Link href={`/s/${ctx.store.slug}/page/${page.slug}?preview=1`}>{page.title}</Link> · {page.published ? "published" : "draft"}</p>
+        <div key={page.id} className="panel stack">
+          <p><Link href={`/s/${ctx.store.slug}/page/${page.slug}?preview=1`}>View {page.title}</Link> · {page.published ? "published" : "draft"}</p>
+          <PageForm page={page} />
+        </div>
       ))}
+      <h2>New page</h2>
       <PageForm />
       <h2>Menu</h2>
       {menu.map((item) => (
@@ -48,4 +57,13 @@ export default async function ContentPage() {
       </form>
     </div>
   );
+}
+
+function readCopy(payload: string) {
+  try {
+    const data = JSON.parse(payload) as { body?: unknown; imageUrl?: unknown };
+    return { body: typeof data.body === "string" ? data.body : "", imageUrl: typeof data.imageUrl === "string" ? data.imageUrl : "" };
+  } catch {
+    return { body: "", imageUrl: "" };
+  }
 }

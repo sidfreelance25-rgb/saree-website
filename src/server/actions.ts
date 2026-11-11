@@ -456,6 +456,113 @@ export async function decideReturn(formData: FormData) {
   redirect(`/admin/orders/${request.orderId}`);
 }
 
+type ColourDraft = { id: string; name: string; stock: number; price: string; images: string[] };
+
+function readColours(raw: FormDataEntryValue | null): ColourDraft[] | null {
+  if (raw == null || String(raw).trim() === "") return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(String(raw));
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed)) return null;
+  const colours: ColourDraft[] = [];
+  for (const item of parsed) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as { id?: unknown; name?: unknown; stock?: unknown; price?: unknown; images?: unknown };
+    const name = String(row.name ?? "").trim();
+    if (!name) continue;
+    const images = Array.isArray(row.images) ? row.images.map((url) => String(url).trim()).filter((url) => url.startsWith("/") && !url.includes("..")) : [];
+    colours.push({
+      id: String(row.id ?? ""),
+      name,
+      stock: Math.max(0, Math.round(Number(row.stock) || 0)),
+      price: String(row.price ?? "").trim(),
+      images,
+    });
+  }
+  return colours;
+}
+
+async function syncColours(
+  ctx: { store: { id: string }; user: { id: string; name: string }; role: string },
+  productId: string,
+  sku: string,
+  productName: string,
+  colours: ColourDraft[],
+) {
+  const existing = await prisma.productVariant.findMany({ where: { productId, storeId: ctx.store.id } });
+  const kept = new Set<string>();
+  const saved: { id: string; images: string[]; name: string }[] = [];
+  for (const [index, colour] of colours.entries()) {
+    const pricePaise = colour.price ? rupeesToPaise(Number(colour.price)) : null;
+    const owned = existing.find((variant) => variant.id === colour.id);
+    let variantId = owned?.id;
+    if (owned) {
+      await prisma.productVariant.update({
+        where: { id: owned.id },
+        data: { name: colour.name, color: colour.name, pricePaise, sort: index, imageUrl: colour.images[0] ?? "" },
+      });
+      const delta = colour.stock - owned.stock;
+      if (delta !== 0) {
+        await adjustStock(prisma, {
+          storeId: ctx.store.id,
+          variantId: owned.id,
+          qtyDelta: delta,
+          reason: "count",
+          note: `colour ${colour.name}`,
+          actorName: ctx.user.name,
+          actorId: ctx.user.id,
+          role: can(ctx.role, "inventory.write") ? ctx.role : "owner",
+        });
+      }
+    } else {
+      const base = `${sku}-${slugify(colour.name) || `c${index + 1}`}`;
+      let nextSku = base;
+      let attempt = 2;
+      while (await prisma.productVariant.findUnique({ where: { storeId_sku: { storeId: ctx.store.id, sku: nextSku } } })) {
+        nextSku = `${base}-${attempt}`;
+        attempt += 1;
+      }
+      const created = await prisma.productVariant.create({
+        data: {
+          storeId: ctx.store.id,
+          productId,
+          sku: nextSku,
+          name: colour.name,
+          color: colour.name,
+          stock: colour.stock,
+          pricePaise,
+          sort: index,
+          imageUrl: colour.images[0] ?? "",
+        },
+      });
+      variantId = created.id;
+    }
+    if (!variantId) continue;
+    kept.add(variantId);
+    saved.push({ id: variantId, images: colour.images, name: colour.name });
+  }
+  const dropped = existing.filter((variant) => !kept.has(variant.id));
+  if (dropped.length) {
+    await prisma.cartItem.deleteMany({ where: { variantId: { in: dropped.map((variant) => variant.id) } } });
+    await prisma.productVariant.deleteMany({ where: { id: { in: dropped.map((variant) => variant.id) }, storeId: ctx.store.id } });
+  }
+  await prisma.productImage.deleteMany({ where: { productId, storeId: ctx.store.id } });
+  const rows = saved.flatMap((colour, colourIndex) =>
+    colour.images.map((url, imageIndex) => ({
+      storeId: ctx.store.id,
+      productId,
+      variantId: colour.id,
+      url,
+      alt: `${productName} · ${colour.name}`,
+      sort: colourIndex * 10 + imageIndex,
+    })),
+  );
+  if (rows.length) await prisma.productImage.createMany({ data: rows });
+}
+
 export async function saveProduct(_prev: { error: string } | null, formData: FormData) {
   const ctx = await act("products.write");
   const id = String(formData.get("id") ?? "");
@@ -473,6 +580,9 @@ export async function saveProduct(_prev: { error: string } | null, formData: For
     .split("\n")
     .map((item) => item.trim())
     .filter(Boolean);
+  const colours = readColours(formData.get("colours"));
+  if (colours === null) return { error: "The colour list could not be read. Add each colour again." };
+  if (formData.has("colours") && colours.length === 0) return { error: "Add at least one colour. It stays on this saree, not as a second catalogue item." };
   const data = {
     name,
     slug,
@@ -503,6 +613,10 @@ export async function saveProduct(_prev: { error: string } | null, formData: For
     lowStockAt: Number(formData.get("lowStockAt") || ctx.store.lowStockDefault),
     publishedAt: String(formData.get("status") ?? "") === "active" ? new Date() : null,
   };
+  if (colours.length) {
+    data.color = colours[0].name;
+    data.secondaryColor = colours.slice(1).map((colour) => colour.name).join(", ");
+  }
   const stock = Math.max(0, Number(formData.get("stock") || 0));
   try {
     let product;
@@ -513,52 +627,42 @@ export async function saveProduct(_prev: { error: string } | null, formData: For
     } else {
       product = await prisma.product.create({ data: { ...data, storeId: ctx.store.id } });
     }
-    if (images.length) {
-      await prisma.productImage.deleteMany({ where: { productId: product.id, storeId: ctx.store.id } });
-      await prisma.productImage.createMany({
-        data: images.map((url, index) => ({ storeId: ctx.store.id, productId: product.id, url, alt: name, sort: index })),
-      });
-    }
-    const variant = await prisma.productVariant.findFirst({ where: { productId: product.id, storeId: ctx.store.id } });
-    if (!variant) {
-      await prisma.productVariant.create({
-        data: {
-          storeId: ctx.store.id,
-          productId: product.id,
-          sku: `${sku}-1`,
-          name: data.color || "Default",
-          color: data.color,
-          stock,
-        },
-      });
-    } else if (formData.get("stock") !== null && String(formData.get("stock")) !== "") {
-      const delta = stock - variant.stock;
-      if (delta !== 0) {
-        await adjustStock(prisma, {
-          storeId: ctx.store.id,
-          variantId: variant.id,
-          qtyDelta: delta,
-          reason: "count",
-          note: "product form",
-          actorName: ctx.user.name,
-          actorId: ctx.user.id,
-          role: ctx.role === "owner" || can(ctx.role, "inventory.write") ? ctx.role : "owner",
+    if (colours.length) {
+      await syncColours(ctx, product.id, sku, name, colours);
+    } else {
+      if (images.length) {
+        await prisma.productImage.deleteMany({ where: { productId: product.id, storeId: ctx.store.id } });
+        await prisma.productImage.createMany({
+          data: images.map((url, index) => ({ storeId: ctx.store.id, productId: product.id, url, alt: name, sort: index })),
         });
       }
-    }
-    const extraName = String(formData.get("extraVariant") ?? "").trim();
-    if (extraName) {
-      await prisma.productVariant.create({
-        data: {
-          storeId: ctx.store.id,
-          productId: product.id,
-          sku: `${sku}-${slugify(extraName) || "var"}`,
-          name: extraName,
-          color: extraName,
-          stock: Number(formData.get("extraStock") || 0),
-          pricePaise: formData.get("extraPrice") ? rupeesToPaise(Number(formData.get("extraPrice"))) : null,
-        },
-      });
+      const variant = await prisma.productVariant.findFirst({ where: { productId: product.id, storeId: ctx.store.id } });
+      if (!variant) {
+        await prisma.productVariant.create({
+          data: {
+            storeId: ctx.store.id,
+            productId: product.id,
+            sku: `${sku}-1`,
+            name: data.color || "Default",
+            color: data.color,
+            stock,
+          },
+        });
+      } else if (formData.get("stock") !== null && String(formData.get("stock")) !== "") {
+        const delta = stock - variant.stock;
+        if (delta !== 0) {
+          await adjustStock(prisma, {
+            storeId: ctx.store.id,
+            variantId: variant.id,
+            qtyDelta: delta,
+            reason: "count",
+            note: "product form",
+            actorName: ctx.user.name,
+            actorId: ctx.user.id,
+            role: ctx.role === "owner" || can(ctx.role, "inventory.write") ? ctx.role : "owner",
+          });
+        }
+      }
     }
     await prisma.auditLog.create({
       data: {
@@ -769,11 +873,23 @@ export async function moveSection(formData: FormData) {
 export async function updateSection(formData: FormData) {
   const ctx = await act("content.write");
   const id = String(formData.get("id") ?? "");
+  const current = await prisma.homepageSection.findFirst({ where: { id, storeId: ctx.store.id } });
+  if (!current) redirect("/admin/content");
+  let payload: Record<string, unknown> = {};
+  try {
+    const parsed = JSON.parse(current.payload) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) payload = parsed as Record<string, unknown>;
+  } catch {
+    payload = {};
+  }
+  payload.body = String(formData.get("body") ?? "");
+  payload.imageUrl = String(formData.get("imageUrl") ?? "");
   await prisma.homepageSection.updateMany({
     where: { id, storeId: ctx.store.id },
     data: {
       title: String(formData.get("title") ?? ""),
       subtitle: String(formData.get("subtitle") ?? ""),
+      payload: JSON.stringify(payload),
     },
   });
   redirect("/admin/content");

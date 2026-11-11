@@ -50,6 +50,17 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
               blouseIncluded: product.blouseIncluded,
               images: product.images.map((image) => image.url),
               lowStockAt: String(product.lowStockAt),
+              colours: product.variants.map((variant, index) => {
+                const own = product.images.filter((image) => image.variantId === variant.id).map((image) => image.url);
+                const shared = index === 0 && product.images.every((image) => !image.variantId) ? product.images.map((image) => image.url) : [];
+                return {
+                  id: variant.id,
+                  name: variant.name,
+                  stock: String(variant.stock),
+                  price: variant.pricePaise != null ? String(variant.pricePaise / 100) : "",
+                  images: own.length ? own : shared,
+                };
+              }),
             }}
           />
           <form action={duplicateProduct}>

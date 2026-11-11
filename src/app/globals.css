@@ -118,6 +118,16 @@ p { margin: 0; }
 .thumbs { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
 .thumbs button { border: 1px solid var(--line); padding: 0; background: transparent; width: 64px; }
 .thumbs img { width: 64px; height: 80px; object-fit: cover; }
+.swatches { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.swatch {
+  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 44px; padding: 0.25rem 0.55rem;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+}
+.swatch[aria-pressed="true"] { border-color: var(--primary); outline: 2px solid var(--primary); }
+.swatch img { width: 28px; height: 36px; object-fit: cover; }
+.colour-block { display: grid; gap: 0.6rem; border: 1px solid var(--line); background: white; padding: 0.8rem; }
+.thumb-remove { display: grid; gap: 0.2rem; border: 0; background: transparent; padding: 0; cursor: pointer; color: var(--ink); font-size: 0.75rem; }
+.thumb-remove img { width: 88px; height: 112px; object-fit: cover; }
 .buy { display: grid; gap: 0.7rem; }
 .specs { width: 100%; border-collapse: collapse; }
 .specs th, .specs td { text-align: left; padding: 0.55rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
